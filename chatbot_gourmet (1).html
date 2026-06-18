@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L'Étoile - Chatbot Gourmet Concierge</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Playfair Display & Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .font-serif {
+            font-family: 'Playfair Display', serif;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #171717;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d97706;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="bg-neutral-950 text-neutral-100 min-h-screen flex flex-col overflow-x-hidden">
+
+    <!-- Header / Navbar -->
+    <header class="border-b border-neutral-800 bg-neutral-900/80 backdrop-blur sticky top-0 z-50 px-4 py-3 lg:px-8 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-500 to-yellow-600 flex items-center justify-center shadow-lg shadow-amber-500/10">
+                <i data-lucide="chef-hat" class="text-neutral-950 w-5 h-5"></i>
+            </div>
+            <div>
+                <h1 class="font-serif text-xl font-bold tracking-wide text-amber-500">L'Étoile</h1>
+                <p class="text-[10px] text-neutral-400 uppercase tracking-widest font-semibold">Haute Cuisine Concierge</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                Concierge Activo
+            </span>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        
+        <!-- Left Side: Chatbot Workspace (8 Cols) -->
+        <section class="lg:col-span-7 xl:col-span-8 flex flex-col bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden shadow-2xl h-[calc(100vh-160px)] min-h-[500px]">
+            <!-- Chat Partner Info Bar -->
+            <div class="p-4 border-b border-neutral-800 bg-neutral-950 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="relative">
+                        <div class="w-10 h-10 rounded-full bg-neutral-800 border border-amber-500/30 flex items-center justify-center">
+                            <span class="font-serif text-amber-500 font-bold">✨</span>
+                        </div>
+                        <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 border-2 border-neutral-900"></span>
+                    </div>
+                    <div>
+                        <h2 class="text-sm font-semibold text-neutral-200">Jean-Pierre</h2>
+                        <p class="text-xs text-neutral-400">Sommelier & Gastronomic Guide</p>
+                    </div>
+                </div>
+                <button onclick="resetFlow()" class="text-xs text-neutral-400 hover:text-amber-500 flex items-center gap-1 transition-colors px-2 py-1 rounded bg-neutral-800/50 hover:bg-neutral-800">
+                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Reiniciar
+                </button>
+            </div>
+
+            <!-- Messages Area -->
+            <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4">
+                <!-- Messages will be injected here dynamically -->
+            </div>
+
+            <!-- Suggestion / Quick Action Chips -->
+            <div id="quick-actions" class="p-3 bg-neutral-950/60 border-t border-neutral-800/50 flex flex-wrap gap-2 items-center">
+                <!-- Action chips will be injected here depending on current step -->
+            </div>
+
+            <!-- Input bar -->
+            <div class="p-4 border-t border-neutral-800 bg-neutral-950">
+                <form id="chat-form" onsubmit="handleSend(event)" class="flex gap-2">
+                    <input type="text" id="user-input" 
+                           placeholder="Escribe tu mensaje aquí..." 
+                           class="flex-1 bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500 text-neutral-100 placeholder-neutral-500 transition-all"
+                           autocomplete="off">
+                    <button type="submit" 
+                            class="bg-gradient-to-r from-amber-500 to-yellow-600 text-neutral-950 hover:from-amber-400 hover:to-yellow-500 transition-all duration-200 font-semibold text-sm px-5 py-3 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-amber-500/10 active:scale-[0.98]">
+                        <span>Enviar</span>
+                        <i data-lucide="send" class="w-4 h-4"></i>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Right Side: Live Gourmet Order Summary & Digital Menu (4 Cols) -->
+        <section class="lg:col-span-5 xl:col-span-4 flex flex-col gap-6">
+            
+            <!-- Live Ticket Panel -->
+            <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-5 shadow-xl relative overflow-hidden flex flex-col justify-between">
+                <!-- Gold Accent bar -->
+                <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600"></div>
+                
+                <div>
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-serif text-lg text-amber-500 font-bold flex items-center gap-2">
+                            <i data-lucide="receipt" class="w-5 h-5 text-amber-500"></i>
+                            Comanda Digital
+                        </h3>
+                        <span id="ticket-status" class="text-[10px] bg-neutral-800 text-neutral-400 px-2.5 py-1 rounded-full uppercase tracking-wider font-semibold">
+                            Esperando Datos
+                        </span>
+                    </div>
+
+                    <!-- Client Detail Card -->
+                    <div class="bg-neutral-950/80 rounded-xl p-4 border border-neutral-800/60 space-y-2 text-sm mb-4">
+                        <div class="flex justify-between items-center text-xs text-neutral-400 border-b border-neutral-800/40 pb-2 mb-2">
+                            <span>DATOS DE FACTURACIÓN</span>
+                            <i data-lucide="user" class="w-3.5 h-3.5 text-neutral-500"></i>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-neutral-400">Sucursal:</span>
+                            <span id="summary-branch" class="font-semibold text-neutral-200">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-neutral-400">Cliente:</span>
+                            <span id="summary-name" class="font-semibold text-neutral-200">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-neutral-400">Teléfono:</span>
+                            <span id="summary-phone" class="font-semibold text-neutral-200">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-neutral-400">Cédula:</span>
+                            <span id="summary-cedula" class="font-semibold text-neutral-200">-</span>
+                        </div>
+                    </div>
+
+                    <!-- Items List -->
+                    <div class="space-y-2 max-h-[180px] overflow-y-auto mb-4" id="summary-items">
+                        <p class="text-xs text-neutral-500 text-center py-6 italic">No has seleccionado ningún plato gourmet aún.</p>
+                    </div>
+                </div>
+
+                <!-- Price Calculations -->
+                <div class="border-t border-neutral-800/80 pt-4 mt-2 space-y-1.5 text-sm">
+                    <div class="flex justify-between text-neutral-400">
+                        <span>Subtotal:</span>
+                        <span id="summary-subtotal">$0.00</span>
+                    </div>
+                    <div class="flex justify-between text-neutral-400">
+                        <span>I.V.A (12%):</span>
+                        <span id="summary-tax">$0.00</span>
+                    </div>
+                    <div class="flex justify-between text-amber-500 font-bold text-base border-t border-neutral-800/60 pt-2 mt-2">
+                        <span>Total:</span>
+                        <span id="summary-total">$0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fast-Click Gourmet Menu Display -->
+            <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-5 flex-1 flex flex-col">
+                <h3 class="font-serif text-lg text-neutral-200 mb-3 font-semibold flex items-center gap-2">
+                    <i data-lucide="utensils" class="w-5 h-5 text-amber-500"></i>
+                    Carta del Chef
+                </h3>
+                <p class="text-xs text-neutral-400 mb-4">Puedes hacer clic en los platos para agregarlos a tu comanda directamente.</p>
+
+                <!-- Menu Tabs (Starters, Mains, Desserts, Wines) -->
+                <div class="grid grid-cols-4 gap-1 bg-neutral-950 p-1 rounded-lg text-xs mb-3">
+                    <button onclick="switchMenuTab('entradas')" id="tab-entradas" class="py-1.5 rounded text-amber-500 bg-neutral-900 font-medium transition-all">Entradas</button>
+                    <button onclick="switchMenuTab('fuertes')" id="tab-fuertes" class="py-1.5 rounded text-neutral-400 hover:text-neutral-200 transition-all">Fuertes</button>
+                    <button onclick="switchMenuTab('postres')" id="tab-postres" class="py-1.5 rounded text-neutral-400 hover:text-neutral-200 transition-all">Postres</button>
+                    <button onclick="switchMenuTab('vinos')" id="tab-vinos" class="py-1.5 rounded text-neutral-400 hover:text-neutral-200 transition-all">Vinos</button>
+                </div>
+
+                <!-- Menu Items List Container -->
+                <div id="menu-items-container" class="space-y-2 overflow-y-auto max-h-[220px] pr-1 flex-1">
+                    <!-- Dynamic menu item rows will load here -->
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-neutral-800/80 bg-neutral-950/60 py-4 text-center text-xs text-neutral-500">
+        <p>© 2026 L'Étoile Gourmet Restaurante. Todos los derechos reservados.</p>
+    </footer>
+
+    <!-- Script Section -->
+    <script>
+        // API key standard empty definition
+        const apiKey = "";
+
+        // Flow Steps Definition
+        const STEPS = {
+            BRANCH: 'branch',
+            NAME: 'name',
+            PHONE: 'phone',
+            CEDULA: 'cedula',
+            MENU: 'menu',
+            CONFIRMATION: 'confirmation',
+            COMPLETED: 'completed'
+        };
+
+        // App Global State
+        let state = {
+            step: STEPS.BRANCH,
+            branch: "",
+            userName: "",
+            phone: "",
+            cedula: "",
+            cart: [],
+            currentMenuTab: "entradas"
+        };
+
+        // Gourmet Menu Source of Truth
+        const gourmetMenu = {
+            entradas: [
+                { id: 'e1', name: "Tartar de Atún Rojo y Trufa", price: 18.50, desc: "Con aguacate, reducción de soya premium y aceite de trufa." },
+                { id: 'e2', name: "Carpaccio de Res Angus", price: 16.00, desc: "Láminas finas de lomo, parmesano de 24 meses y rúcula." },
+                { id: 'e3', name: "Sopa de Cebolla Francesa", price: 12.00, desc: "Caldo artesanal de res caramelizado y gratinado con queso Gruyère." }
+            ],
+            fuertes: [
+                { id: 'f1', name: "Filet Mignon en Salsa de Oporto", price: 34.00, desc: "Lomo fino tierno con puré de papas trufado y espárragos." },
+                { id: 'f2', name: "Salmón Glaseado con Miso", price: 28.50, desc: "Salmón noruego con costra de ajonjolí y vegetales baby." },
+                { id: 'f3', name: "Risotto de Hongos Silvestres", price: 24.00, desc: "Arroz Carnaroli con variedad de setas del bosque y aceite de trufa blanca." }
+            ],
+            postres: [
+                { id: 'p1', name: "Volcán de Chocolate Belga", price: 10.50, desc: "Cálido bizcocho fluido acompañado de helado de vainilla orgánica." },
+                { id: 'p2', name: "Crème Brûlée a la Vainilla", price: 9.00, desc: "Clásica crema quemada aromatizada con vainas de Madagascar." }
+            ],
+            vinos: [
+                { id: 'v1', name: "Copa de Cabernet Sauvignon", price: 12.00, desc: "Vino tinto reserva de gran cuerpo, ideal para acompañar carnes rojas." },
+                { id: 'v2', name: "Agua Mineral Premium (Con Gas)", price: 4.50, desc: "Procedencia de manantial artesanal embotellado en vidrio." }
+            ]
+        };
+
+        // UI Initial Load
+        window.onload = function() {
+            lucide.createIcons();
+            // Start the welcome flow
+            addBotMessage("¡Bienvenido a <strong>L'Étoile Gourmet</strong>! Soy Jean-Pierre, su asistente y concierge gastronómico el día de hoy.<br><br>Para comenzar con su refinada experiencia culinaria, por favor **seleccione la sucursal** donde desea realizar su pedido:");
+            renderQuickActions();
+            renderMenuTab();
+            updateLiveTicket();
+        };
+
+        // Add Message to Chat History
+        function addBotMessage(text) {
+            const container = document.getElementById('chat-messages');
+            
+            // Format standard bolding Markdown style
+            let formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            
+            const msgDiv = document.createElement('div');
+            msgDiv.className = "flex gap-3 max-w-[85%] animate-fade-in";
+            msgDiv.innerHTML = `
+                <div class="w-8 h-8 rounded-full bg-neutral-800 border border-amber-500/30 flex items-center justify-center flex-shrink-0">
+                    <span class="text-xs text-amber-500">✨</span>
+                </div>
+                <div class="bg-neutral-800/80 border border-neutral-800 rounded-2xl rounded-tl-none p-3.5 text-sm text-neutral-200 leading-relaxed shadow-md">
+                    ${formattedText}
+                </div>
+            `;
+            container.appendChild(msgDiv);
+            scrollToBottom();
+        }
+
+        function addUserMessage(text) {
+            const container = document.getElementById('chat-messages');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = "flex gap-3 max-w-[85%] ml-auto justify-end animate-fade-in";
+            msgDiv.innerHTML = `
+                <div class="bg-amber-600 text-neutral-950 font-medium rounded-2xl rounded-tr-none p-3.5 text-sm leading-relaxed shadow-lg shadow-amber-500/5">
+                    ${text}
+                </div>
+                <div class="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="user" class="w-4 h-4 text-amber-400"></i>
+                </div>
+            `;
+            container.appendChild(msgDiv);
+            lucide.createIcons();
+            scrollToBottom();
+        }
+
+        function addTypingIndicator() {
+            const container = document.getElementById('chat-messages');
+            const typingDiv = document.createElement('div');
+            typingDiv.id = "typing-indicator";
+            typingDiv.className = "flex gap-3 max-w-[80%]";
+            typingDiv.innerHTML = `
+                <div class="w-8 h-8 rounded-full bg-neutral-800 border border-amber-500/30 flex items-center justify-center flex-shrink-0">
+                    <span class="text-xs text-amber-500">✨</span>
+                </div>
+                <div class="bg-neutral-800/80 border border-neutral-800 rounded-2xl rounded-tl-none p-3.5 flex items-center gap-1">
+                    <span class="w-2 h-2 bg-neutral-500 rounded-full animate-bounce" style="animation-delay: 0ms"></span>
+                    <span class="w-2 h-2 bg-neutral-500 rounded-full animate-bounce" style="animation-delay: 150ms"></span>
+                    <span class="w-2 h-2 bg-neutral-500 rounded-full animate-bounce" style="animation-delay: 300ms"></span>
+                </div>
+            `;
+            container.appendChild(typingDiv);
+            scrollToBottom();
+        }
+
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        function scrollToBottom() {
+            const container = document.getElementById('chat-messages');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Handle Send Action
+        function handleSend(event) {
+            if (event) event.preventDefault();
+            const input = document.getElementById('user-input');
+            const value = input.value.trim();
+            if (!value) return;
+
+            addUserMessage(value);
+            input.value = "";
+            processInput(value);
+        }
+
+        // Process logic according to state machine steps
+        function processInput(inputVal) {
+            addTypingIndicator();
+            
+            // Artificial slight delay for organic premium chatbot feel
+            setTimeout(async () => {
+                removeTypingIndicator();
+                let reply = "";
+
+                switch(state.step) {
+                    case STEPS.BRANCH:
+                        // Validate sucursal choice
+                        const lowerInput = inputVal.toLowerCase();
+                        if (lowerInput.includes("quito") || lowerInput.includes("norte")) {
+                            state.branch = "L'Étoile Quito Norte";
+                        } else if (lowerInput.includes("cumbayá") || lowerInput.includes("cumbaya")) {
+                            state.branch = "L'Étoile Cumbayá Valleys";
+                        } else if (lowerInput.includes("guayaquil") || lowerInput.includes("samborondón") || lowerInput.includes("samborondon")) {
+                            state.branch = "L'Étoile Samborondón";
+                        } else {
+                            // Fallback default
+                            state.branch = "L'Étoile Quito Norte (Sugerida)";
+                        }
+                        
+                        state.step = STEPS.NAME;
+                        reply = `Excelente elección de locación. Su pedido se gestionará a través de la cocina boutique en **${state.branch}**.<br><br>Para personalizar esta velada gastronómica, ¿podría indicarme su **nombre y apellido completo**, por favor?`;
+                        break;
+
+                    case STEPS.NAME:
+                        state.userName = inputVal;
+                        state.step = STEPS.PHONE;
+                        reply = `Un placer atenderle, Sr./Sra. **${state.userName}**. <br><br>¿A qué **número de teléfono** podemos contactarle para coordinar la entrega o cualquier refinamiento de su comanda?`;
+                        break;
+
+                    case STEPS.PHONE:
+                        // Simple validation for phone numbers
+                        if (!/^[0-9+\s-]{7,15}$/.test(inputVal)) {
+                            reply = `Disculpe la molestia, pero el formato de contacto ingresado no parece ser del todo válido. Por favor ingrese su **número telefónico** (solo números):`;
+                        } else {
+                            state.phone = inputVal;
+                            state.step = STEPS.CEDULA;
+                            reply = `Registrado con éxito: **${state.phone}**.<br><br>Por regulaciones tributarias de facturación en comidas premium, por favor ingrese su **número de Cédula de Identidad** (o pasaporte):`;
+                        }
+                        break;
+
+                    case STEPS.CEDULA:
+                        // Simple ID length/numeric validation
+                        if (!/^[a-zA-Z0-9-]{6,15}$/.test(inputVal)) {
+                            reply = `Por favor, ingrese un número de **cédula** o pasaporte válido (solo números o letras):`;
+                        } else {
+                            state.cedula = inputVal;
+                            state.step = STEPS.MENU;
+                            reply = `Perfecto. Hemos registrado su C.I.: **${state.cedula}**.<br><br>¡Hemos abierto nuestra prestigiosa **Carta del Chef**! Puede indicarme qué platos desea degustar hoy (por ejemplo: "quiero Filet Mignon y una copa de vino") o bien, hacer clic de forma ágil en la sección derecha de su pantalla sobre la carta. <br><br>¿Qué le gustaría ordenar para comenzar?`;
+                        }
+                        break;
+
+                    case STEPS.MENU:
+                        // We will call the AI model to parse their order in natural language
+                        reply = await callAIForOrderParsing(inputVal);
+                        break;
+
+                    case STEPS.CONFIRMATION:
+                        const choice = inputVal.toLowerCase();
+                        if (choice.includes("sí") || choice.includes("si") || choice.includes("confirmar") || choice.includes("aceptar")) {
+                            state.step = STEPS.COMPLETED;
+                            reply = `¡Magnífico! Su orden ha sido enviada directamente a la cocina maestra de **${state.branch}**.<br><br>Nuestro Chef Executif iniciará la preparación de inmediato. El tiempo estimado de envío/preparación es de **45 minutos**.<br><br>Su código de orden premium es **#LE-${Math.floor(1000 + Math.random() * 9000)}**. ¡Gracias por elegir la excelencia gastronómica de L'Étoile!`;
+                        } else if (choice.includes("no") || choice.includes("cancelar") || choice.includes("modificar")) {
+                            state.step = STEPS.MENU;
+                            reply = `Entendido, mantengamos la comanda abierta para que pueda realizar los cambios pertinentes. ¿Qué plato o vino le gustaría añadir o retirar?`;
+                        } else {
+                            reply = `Por favor, confírmeme si desea procesar esta orden gourmet escribiendo **"Sí, confirmar"** o **"No, modificar"**.`;
+                        }
+                        break;
+
+                    case STEPS.COMPLETED:
+                        reply = `Su orden actual ya ha sido cerrada con estatus de excelente elaboración. Si desea realizar un nuevo pedido gastronómico, puede pulsar el botón **"Reiniciar"** en la parte superior.`;
+                        break;
+                }
+
+                addBotMessage(reply);
+                updateLiveTicket();
+                renderQuickActions();
+            }, 750);
+        }
+
+        // Select branch shortcut buttons
+        function selectBranchDirectly(branchName) {
+            addUserMessage(`Sucursal: ${branchName}`);
+            state.branch = branchName;
+            state.step = STEPS.NAME;
+            addTypingIndicator();
+            setTimeout(() => {
+                removeTypingIndicator();
+                addBotMessage(`Excelente elección de locación. Su pedido se gestionará a través de la cocina boutique en **${state.branch}**.<br><br>Para personalizar esta velada gastronómica, ¿podría indicarme su **nombre y apellido completo**, por favor?`);
+                updateLiveTicket();
+                renderQuickActions();
+            }, 500);
+        }
+
+        // Add item from quick click menu
+        function addToCartFromUI(itemId) {
+            if (state.step === STEPS.BRANCH || state.step === STEPS.NAME || state.step === STEPS.PHONE || state.step === STEPS.CEDULA) {
+                addBotMessage("Primero debemos culminar su registro de datos (sucursal, nombre, teléfono, cédula) antes de proceder a ordenar deliciosos platos. Permítame guiarle.");
+                return;
+            }
+            
+            let foundItem = null;
+            for (const category in gourmetMenu) {
+                const match = gourmetMenu[category].find(item => item.id === itemId);
+                if (match) {
+                    foundItem = match;
+                    break;
+                }
+            }
+
+            if (foundItem) {
+                // Check if already in cart
+                const existing = state.cart.find(c => c.id === foundItem.id);
+                if (existing) {
+                    existing.quantity += 1;
+                } else {
+                    state.cart.push({
+                        id: foundItem.id,
+                        name: foundItem.name,
+                        price: foundItem.price,
+                        quantity: 1
+                    });
+                }
+                
+                addUserMessage(`Deseo agregar: ${foundItem.name}`);
+                addTypingIndicator();
+                setTimeout(() => {
+                    removeTypingIndicator();
+                    addBotMessage(`He añadido **${foundItem.name}** ($${foundItem.price.toFixed(2)}) a su comanda gourmet. <br><br>¿Desea agregar algo más de la Carta del Chef, o procedemos a la **confirmación de su pedido**?`);
+                    updateLiveTicket();
+                    renderQuickActions();
+                }, 500);
+            }
+        }
+
+        function removeFromCart(itemId) {
+            state.cart = state.cart.filter(item => item.id !== itemId);
+            addBotMessage("He removido el artículo seleccionado de su comanda.");
+            updateLiveTicket();
+            renderQuickActions();
+        }
+
+        // Call Gemini 2.5 Flash as Smart Gastronomic Parsing Agent
+        async function callAIForOrderParsing(userMessage) {
+            // Build custom fallback response to work locally flawlessly
+            let localMatchedResponse = "";
+            let foundAny = false;
+
+            // Simple Local Matcher
+            const messageLower = userMessage.toLowerCase();
+            
+            // Check all items
+            for (const category in gourmetMenu) {
+                gourmetMenu[category].forEach(dish => {
+                    const dishWords = dish.name.toLowerCase().split(" ");
+                    // Simple keyword intersection
+                    const matchScore = dishWords.filter(word => word.length > 3 && messageLower.includes(word)).length;
+                    if (matchScore > 0 || messageLower.includes(dish.name.toLowerCase())) {
+                        foundAny = true;
+                        const existing = state.cart.find(c => c.id === dish.id);
+                        if (existing) {
+                            existing.quantity += 1;
+                        } else {
+                            state.cart.push({
+                                id: dish.id,
+                                name: dish.name,
+                                price: dish.price,
+                                quantity: 1
+                            });
+                        }
+                    }
+                });
+            }
+
+            // Standard Gemini API Call (Using prompt instructions)
+            if (apiKey !== "") {
+                try {
+                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            contents: [{
+                                parts: [{
+                                    text: `Eres Jean-Pierre, el sommelier y concierge de alta cocina de "L'Étoile". 
+                                    El cliente dice: "${userMessage}". 
+                                    Su estado de orden actual: ${JSON.stringify(state.cart)}.
+                                    Menú disponible: ${JSON.stringify(gourmetMenu)}.
+                                    
+                                    Responde con elegancia francesa y gourmet. Si el cliente menciona platos del menú o quiere ordenar algo, descríbele la exquisitez de su elección brevemente de forma sumamente premium y refinada.
+                                    Indícale que has procesado su comanda actual y pregúntale si gusta pasar a la confirmación de la orden.`
+                                }]
+                            }]
+                        })
+                    });
+                    const data = await response.json();
+                    const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (aiText) {
+                        return aiText;
+                    }
+                } catch (err) {
+                    console.error("API error, falling back to local handler", err);
+                }
+            }
+
+            // Fallback Intelligent-looking local feedback
+            if (foundAny) {
+                return `Excelente elección gastronómica. He comprendido perfectamente su requerimiento y actualicé su comanda con exquisiteces adicionales.<br><br>¿Gusta que procedamos a la **confirmación final de su pedido**?`;
+            } else if (messageLower.includes("confirmar") || messageLower.includes("pagar") || messageLower.includes("listo") || messageLower.includes("todo")) {
+                if (state.cart.length === 0) {
+                    return `Su comanda gourmet está actualmente vacía. Por favor, seleccione alguno de los deliciosos platillos de la Carta del Chef antes de proceder con el envío.`;
+                }
+                state.step = STEPS.CONFIRMATION;
+                return `Entendido. Procederemos con la facturación y despacho. Por favor, revise el resumen de su pedido en el panel lateral. <br><br>¿Confirma que todos los datos son correctos y desea **enviar la comanda a la cocina**? (Responda **"Sí, confirmar"**)`;
+            } else {
+                return `Entiendo su entusiasmo. Hágame saber si desea agregar otra especialidad de la casa, o si prefiere que **confirmemos su comanda** en este instante.`;
+            }
+        }
+
+        // Proceed to Checkout State Trigger
+        function proceedToCheckout() {
+            if (state.cart.length === 0) {
+                addBotMessage("Su comanda gourmet está vacía. Por favor añada platillos antes de continuar.");
+                return;
+            }
+            addUserMessage("Deseo confirmar mi comanda gourmet");
+            state.step = STEPS.CONFIRMATION;
+            addTypingIndicator();
+            setTimeout(() => {
+                removeTypingIndicator();
+                addBotMessage(`Excelente decisión, Sr./Sra. **${state.userName}**. He enviado la orden de compra preliminar a caja.<br><br>Por favor, verifique el total, impuestos y sucursal de destino en el panel **Comanda Digital** a la derecha de su pantalla.<br><br>¿Confirma su orden gourmet?`);
+                updateLiveTicket();
+                renderQuickActions();
+            }, 600);
+        }
+
+        // Render Bottom Quick Action Buttons depending on the Flow State
+        function renderQuickActions() {
+            const container = document.getElementById('quick-actions');
+            container.innerHTML = "";
+
+            if (state.step === STEPS.BRANCH) {
+                container.innerHTML = `
+                    <span class="text-xs text-neutral-500 font-semibold uppercase mr-2">Accesos Rápidos:</span>
+                    <button onclick="selectBranchDirectly('Quito Norte')" class="bg-neutral-900 border border-neutral-800 text-amber-500 hover:bg-neutral-800 transition-all text-xs px-3 py-1.5 rounded-lg font-medium">Quito Norte</button>
+                    <button onclick="selectBranchDirectly('Cumbayá Valleys')" class="bg-neutral-900 border border-neutral-800 text-amber-500 hover:bg-neutral-800 transition-all text-xs px-3 py-1.5 rounded-lg font-medium">Cumbayá</button>
+                    <button onclick="selectBranchDirectly('Samborondón')" class="bg-neutral-900 border border-neutral-800 text-amber-500 hover:bg-neutral-800 transition-all text-xs px-3 py-1.5 rounded-lg font-medium">Samborondón</button>
+                `;
+            } else if (state.step === STEPS.MENU && state.cart.length > 0) {
+                container.innerHTML = `
+                    <span class="text-xs text-neutral-500 font-semibold uppercase mr-2">Acciones:</span>
+                    <button onclick="proceedToCheckout()" class="bg-gradient-to-r from-amber-500 to-yellow-600 text-neutral-950 hover:from-amber-400 hover:to-yellow-500 transition-all text-xs px-4 py-2 rounded-lg font-bold flex items-center gap-1.5">
+                        <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Confirmar Pedido ($${calculateTotals().total.toFixed(2)})
+                    </button>
+                `;
+            } else if (state.step === STEPS.CONFIRMATION) {
+                container.innerHTML = `
+                    <span class="text-xs text-neutral-500 font-semibold uppercase mr-2">Confirmación:</span>
+                    <button onclick="processInput('Sí, confirmar')" class="bg-emerald-600 hover:bg-emerald-500 text-white transition-all text-xs px-4 py-2 rounded-lg font-bold">Sí, Confirmar Pedido</button>
+                    <button onclick="processInput('No, modificar')" class="bg-rose-950/60 border border-rose-800 text-rose-300 hover:bg-rose-900 transition-all text-xs px-4 py-2 rounded-lg font-medium">No, Modificar Comanda</button>
+                `;
+            } else {
+                container.innerHTML = `<span class="text-xs text-neutral-500 italic">Jean-Pierre está atento a sus instrucciones de texto...</span>`;
+            }
+            lucide.createIcons();
+        }
+
+        // Render Menu Item Cards inside Sidebar Category Tabs
+        function switchMenuTab(tabName) {
+            state.currentMenuTab = tabName;
+            
+            // Update UI Tab Active Classes
+            ['entradas', 'fuertes', 'postres', 'vinos'].forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                if (t === tabName) {
+                    btn.className = "py-1.5 rounded text-amber-500 bg-neutral-900 font-semibold transition-all";
+                } else {
+                    btn.className = "py-1.5 rounded text-neutral-400 hover:text-neutral-200 transition-all";
+                }
+            });
+
+            renderMenuTab();
+        }
+
+        function renderMenuTab() {
+            const container = document.getElementById('menu-items-container');
+            container.innerHTML = "";
+            const items = gourmetMenu[state.currentMenuTab];
+
+            items.forEach(dish => {
+                const card = document.createElement('div');
+                card.onclick = () => addToCartFromUI(dish.id);
+                card.className = "bg-neutral-950 hover:bg-neutral-800 border border-neutral-800/80 hover:border-amber-500/30 p-3 rounded-xl transition-all duration-200 cursor-pointer flex justify-between items-center group";
+                card.innerHTML = `
+                    <div class="flex-1 pr-3">
+                        <h4 class="text-xs font-semibold text-neutral-200 group-hover:text-amber-500 transition-colors">${dish.name}</h4>
+                        <p class="text-[10px] text-neutral-500 mt-0.5 line-clamp-2">${dish.desc}</p>
+                    </div>
+                    <div class="text-right flex-shrink-0">
+                        <span class="text-xs font-bold text-amber-400 block">$${dish.price.toFixed(2)}</span>
+                        <span class="text-[9px] text-neutral-400 bg-neutral-900 px-1.5 py-0.5 rounded border border-neutral-800 mt-1 inline-block group-hover:bg-amber-500 group-hover:text-neutral-950 transition-colors">
+                            Agregar
+                        </span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Helper calculations
+        function calculateTotals() {
+            let subtotal = 0;
+            state.cart.forEach(item => {
+                subtotal += item.price * item.quantity;
+            });
+            const tax = subtotal * 0.12; // Standard 12% IVA for Ecuador
+            const total = subtotal + tax;
+            return { subtotal, tax, total };
+        }
+
+        // Update Comanda Digital Panel live details
+        function updateLiveTicket() {
+            // Text values updates
+            document.getElementById('summary-branch').innerText = state.branch || "Sin definir";
+            document.getElementById('summary-name').innerText = state.userName || "Sin definir";
+            document.getElementById('summary-phone').innerText = state.phone || "Sin definir";
+            document.getElementById('summary-cedula').innerText = state.cedula || "Sin definir";
+
+            // Status bar
+            const statusBar = document.getElementById('ticket-status');
+            if (state.step === STEPS.BRANCH || state.step === STEPS.NAME || state.step === STEPS.PHONE || state.step === STEPS.CEDULA) {
+                statusBar.innerText = "Registrando Cliente";
+                statusBar.className = "text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2.5 py-1 rounded-full uppercase tracking-wider font-semibold";
+            } else if (state.step === STEPS.MENU) {
+                statusBar.innerText = "Seleccionando Carta";
+                statusBar.className = "text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2.5 py-1 rounded-full uppercase tracking-wider font-semibold";
+            } else if (state.step === STEPS.CONFIRMATION) {
+                statusBar.innerText = "Esperando Confirmación";
+                statusBar.className = "text-[10px] bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 px-2.5 py-1 rounded-full uppercase tracking-wider font-semibold";
+            } else if (state.step === STEPS.COMPLETED) {
+                statusBar.innerText = "Orden Enviada";
+                statusBar.className = "text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-1 rounded-full uppercase tracking-wider font-semibold";
+            }
+
+            // Items listing
+            const itemsContainer = document.getElementById('summary-items');
+            itemsContainer.innerHTML = "";
+
+            if (state.cart.length === 0) {
+                itemsContainer.innerHTML = `
+                    <div class="text-center py-6 text-neutral-500">
+                        <i data-lucide="utensils-crosses" class="w-8 h-8 mx-auto mb-2 opacity-30 text-amber-500"></i>
+                        <p class="text-xs italic">No has seleccionado ningún plato gourmet aún.</p>
+                    </div>
+                `;
+            } else {
+                state.cart.forEach(item => {
+                    const itemRow = document.createElement('div');
+                    itemRow.className = "flex justify-between items-center bg-neutral-950/60 hover:bg-neutral-950 p-2 rounded-lg border border-neutral-800/40 text-xs";
+                    itemRow.innerHTML = `
+                        <div class="flex-1 pr-2">
+                            <span class="font-semibold text-neutral-200">${item.name}</span>
+                            <div class="flex gap-2 text-[10px] text-neutral-400 mt-0.5">
+                                <span>Cant: ${item.quantity}</span>
+                                <span>•</span>
+                                <span>u/p: $${item.price.toFixed(2)}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="font-bold text-neutral-200">$${(item.price * item.quantity).toFixed(2)}</span>
+                            <button onclick="removeFromCart('${item.id}')" class="text-neutral-500 hover:text-rose-500 transition-colors p-1" title="Eliminar">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    `;
+                    itemsContainer.appendChild(itemRow);
+                });
+            }
+
+            // Calculations live render
+            const { subtotal, tax, total } = calculateTotals();
+            document.getElementById('summary-subtotal').innerText = `$${subtotal.toFixed(2)}`;
+            document.getElementById('summary-tax').innerText = `$${tax.toFixed(2)}`;
+            document.getElementById('summary-total').innerText = `$${total.toFixed(2)}`;
+
+            lucide.createIcons();
+        }
+
+        // Full reset option for fresh run
+        function resetFlow() {
+            state = {
+                step: STEPS.BRANCH,
+                branch: "",
+                userName: "",
+                phone: "",
+                cedula: "",
+                cart: [],
+                currentMenuTab: "entradas"
+            };
+            document.getElementById('chat-messages').innerHTML = "";
+            addBotMessage("¡Hola de nuevo! Iniciemos una nueva y exquisita comanda para usted.<br><br>Por favor, **seleccione la sucursal** gastronómica de su agrado para comenzar:");
+            updateLiveTicket();
+            renderQuickActions();
+            renderMenuTab();
+        }
+    </script>
+</body>
+</html>
